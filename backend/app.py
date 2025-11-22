@@ -1,6 +1,6 @@
 import os
 import sys
-from Flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify
 
 # Import module của bạn
 import graph_loader
