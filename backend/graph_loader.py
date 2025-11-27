@@ -1,28 +1,36 @@
-# graph_loader.py
+from astar import astar, haversine
 import networkx as nx
-from astar import Graph, Edge
 
-def load_graphml(path):
-    nx_graph = nx.read_graphml(path)
-    graph = Graph()
+# ---- 1. Load GraphML ----
+graphml_file = r"D:\study\minh\map_data\graph_all.graphml"
+G = nx.read_graphml(graphml_file)
 
-    # Load nodes
-    for node in nx_graph.nodes:
-        lat = float(nx_graph.nodes[node]["lat"])
-        lon = float(nx_graph.nodes[node]["lon"])
-        graph.nodes[node] = (lat, lon)
-        graph.edges[node] = []
+# ---- 2. Chuyển kiểu dữ liệu node ----
+for n, data in G.nodes(data=True):
 
-    # Load edges
-    for u, v, data in nx_graph.edges(data=True):
-        edge = Edge(
-            to=v,
-            distance_km=float(data["distance_km"]),
-            base_weight=float(data["base_weight"]),
-            traffic_level=float(data["traffic"]),
-            allowed_vehicles=data["allowed"].split(","),
-            flooded=data["flooded"] == "1"
-        )
-        graph.edges[u].append(edge)
+    # Tọa độ bắt buộc cần cho A*
+    if "x" in data:
+        data["x"] = float(data["x"])
+    if "y" in data:
+        data["y"] = float(data["y"])
 
-    return graph
+    # Xóa các thuộc tính không cần thiết
+    keys_to_remove = [k for k in data.keys() if k not in ("x", "y")]
+    for k in keys_to_remove:
+        del data[k]
+
+# ---- 3. Chuyển kiểu dữ liệu edge ----
+for u, v, data in G.edges(data=True):
+
+    # length là duy nhất cần cho A*
+    if "length" in data:
+        data["length"] = float(data["length"])
+    else:
+        data["length"] = 0.0   # đề phòng thiếu dữ liệu
+
+    # Xóa thuộc tính không cần thiết
+    keys_to_keep = ("length",)
+    for k in list(data.keys()):
+        if k not in keys_to_keep:
+            del data[k]
+
